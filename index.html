@@ -73,6 +73,8 @@ header{display:flex;align-items:center;gap:14px;padding:14px clamp(16px,4vw,32px
 .cover.big{width:104px;height:104px;font-size:44px;border-radius:14px}
 .pic-row{display:flex;align-items:center;gap:16px}
 .pic-btns{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.pastezone{border:1.5px dashed var(--line);border-radius:12px;padding:18px 12px;text-align:center;color:var(--ink2);font-size:14px;-webkit-user-select:text;user-select:text;caret-color:transparent;outline:none}
+.pastezone:focus{border-color:var(--accent);color:var(--ink)}
 .meta{min-width:0;flex:1}
 .meta .t{display:block;font-family:var(--ja);font-size:18px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .meta .a{display:block;margin-top:2px;font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -206,7 +208,8 @@ textarea{font-family:var(--ja);min-height:220px;resize:vertical;line-height:1.6;
       <label>노래 제목<input id="eTitle" lang="ja"></label>
       <label>가수<input id="eArtist"></label>
     </div>
-    <p class="hint">사진을 복사한 뒤 이 창에서 <b>사진 붙여넣기</b>를 누르거나 Ctrl/⌘+V 하세요.</p>
+    <div class="pastezone" id="pasteZone" contenteditable="true" inputmode="none" role="textbox" aria-label="사진 붙여넣기 칸">여기를 길게 눌러 <b>붙여넣기</b></div>
+    <p class="hint">사진을 복사한 뒤 위 칸을 길게 눌러 붙여넣기 하세요. 컴퓨터에서는 Ctrl/⌘+V도 됩니다.</p>
     <p class="status err" id="infoMsg" role="status"></p>
     <div class="row">
       <button class="ghost" data-close>취소</button>
@@ -430,11 +433,19 @@ async function usePic(blob) {
   try { pendingPic = await readPic(blob); paintCover($('infoCover'), song(), pendingPic); $('infoMsg').textContent = ''; }
   catch (err) { $('infoMsg').textContent = '이 사진은 읽을 수 없어요. 다른 사진을 복사해 보세요.'; }
 }
+const PZ = '여기를 길게 눌러 <b>붙여넣기</b>';
+$('pasteZone').addEventListener('beforeinput', e => { if (e.inputType !== 'insertFromPaste') e.preventDefault(); });
+$('pasteZone').addEventListener('input', () => { $('pasteZone').innerHTML = PZ; });
+$('pasteZone').addEventListener('drop', e => {
+  e.preventDefault();
+  const f = [...(e.dataTransfer?.files || [])].find(x => x.type.startsWith('image/'));
+  if (f) usePic(f);
+});
 document.addEventListener('paste', e => {
   if (!$('infoDlg').open) return;
   const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
   if (!item) { if (!e.target.closest('input')) $('infoMsg').textContent = '클립보드에 사진이 없어요. 사진을 먼저 복사해 주세요.'; return; }
-  e.preventDefault(); usePic(item.getAsFile());
+  e.preventDefault(); usePic(item.getAsFile()); $('pasteZone').innerHTML = PZ; $('pasteZone').blur();
 });
 $('pasteBtn').onclick = async () => {
   try {
