@@ -1,0 +1,14 @@
+{
+  "name": "우타노트 · 일본어 가사 공부",
+  "short_name": "우타노트",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EBDFC2",
+  "theme_color": "#EBDFC2",
+  "lang": "ko",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
