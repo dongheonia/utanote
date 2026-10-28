@@ -1,4 +1,4 @@
-const CACHE = 'utanote-v3';
+const CACHE = 'utanote-v4';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
@@ -20,7 +20,7 @@ self.addEventListener('fetch', e => {
   }
   if (url.origin !== location.origin) return;
   // app files: network first (picks up updates), fall back to cache offline
-  e.respondWith(fetch(req).then(r => {
+  e.respondWith(fetch(req, {cache: 'no-store'}).then(r => {
     if (r.ok) caches.open(CACHE).then(c => c.put(req, r.clone()));
     return r;
   }).catch(() => caches.match(req).then(r => r || caches.match('./index.html'))));
