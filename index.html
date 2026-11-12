@@ -156,7 +156,7 @@ textarea{font-family:var(--ja);min-height:220px;resize:vertical;line-height:1.6;
     <div class="row"><h2>내 노래</h2><button class="primary" id="impBtn">불러오기</button></div>
     <input type="file" id="fImp" accept=".json,application/json" multiple hidden>
     <p class="status" id="bakMsg" role="status"></p>
-    <input type="search" id="songSearch" placeholder="제목·가수 검색" aria-label="노래 검색" autocomplete="off" style="width:100%;margin:2px 0 4px">
+    <input type="search" id="songSearch" placeholder="제목·가수 검색 (한글·영문 발음도 돼요)" aria-label="노래 검색" autocomplete="off" style="width:100%;margin:2px 0 4px">
     <div id="songList"></div>
     <div class="row"><span></span><button class="ghost" data-close>닫기</button></div>
   </div>
@@ -308,14 +308,15 @@ $('editBtn').onclick = () => {
 
 /* library */
 /* search key: width/case folded, hiragana treated as katakana, spaces and dots ignored */
-const fold = t => t.normalize('NFKC').toLowerCase().replace(/[\u3041-\u3096]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60)).replace(/[\s・.·]/g, '');
+/* romaji long vowels (ou/oo/uu) fold to one letter so shounen = shonen; Korean long-vowel dash and apostrophes are ignored */
+const fold = t => t.normalize('NFKC').toLowerCase().replace(/[\u3041-\u3096]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60)).replace(/[\s・.·\-ー'’!?~～]/g, '').replace(/o[ou]/g, 'o').replace(/uu/g, 'u');
 $('songSearch').addEventListener('input', () => renderList());
 function renderList() {
   const box = $('songList'); box.textContent = '';
   const col = new Intl.Collator('ja', {numeric: true, sensitivity: 'base'});
   const groups = new Map();
   const q = fold($('songSearch').value);
-  const list = q ? state.songs.filter(s => fold((s.title || '') + ' ' + (s.artist || '')).includes(q)) : state.songs;
+  const list = q ? state.songs.filter(s => fold((s.title || '') + ' ' + (s.artist || '') + ' ' + (s.kw || '')).includes(q)) : state.songs;
   if (!list.length) { const p = document.createElement('p'); p.className = 'hint'; p.style.padding = '12px'; p.textContent = '찾는 노래가 없어요.'; box.appendChild(p); return; }
   list.forEach(s => { const a = (s.artist || '').trim() || '가수 미입력'; if (!groups.has(a)) groups.set(a, []); groups.get(a).push(s); });
   [...groups.keys()].sort(col.compare).forEach(a => {
@@ -402,7 +403,7 @@ async function loadBundled() {
     const fresh = got.filter(s => !state.removed.includes(s.id));
     /* corrected bundled lyrics replace the stored copy, unless the user edited that song on this device */
     const mine = new Map(state.songs.map(s => [s.id, s]));
-    const changed = fresh.filter(s => { const o = mine.get(s.id); return o && !o.edited && JSON.stringify([o.title, o.artist, o.lines]) !== JSON.stringify([s.title, s.artist, s.lines]); });
+    const changed = fresh.filter(s => { const o = mine.get(s.id); return o && !o.edited && JSON.stringify([o.title, o.artist, o.kw, o.lines]) !== JSON.stringify([s.title, s.artist, s.kw, s.lines]); });
     if (changed.length) mergeSongs(changed, true);
     if (mergeSongs(fresh, false) || changed.length) { save(); if (!editing) render(); if ($('libDlg').open) renderList(); }
   } catch (e) {}
