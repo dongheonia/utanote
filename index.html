@@ -160,6 +160,7 @@ textarea{font-family:var(--ja);min-height:220px;resize:vertical;line-height:1.6;
       <input type="file" id="fImp" accept=".json,application/json" multiple hidden>
     </div>
     <p class="status" id="bakMsg" role="status"></p>
+    <input type="search" id="songSearch" placeholder="제목·가수 검색" aria-label="노래 검색" autocomplete="off" style="width:100%;margin:2px 0 4px">
     <div id="songList"></div>
     <div class="row"><span></span><button class="ghost" data-close>닫기</button></div>
   </div>
@@ -310,11 +311,17 @@ $('editBtn').onclick = () => {
 };
 
 /* library */
+/* search key: width/case folded, hiragana treated as katakana, spaces and dots ignored */
+const fold = t => t.normalize('NFKC').toLowerCase().replace(/[\u3041-\u3096]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60)).replace(/[\s・.·]/g, '');
+$('songSearch').addEventListener('input', () => renderList());
 function renderList() {
   const box = $('songList'); box.textContent = '';
   const col = new Intl.Collator('ja', {numeric: true, sensitivity: 'base'});
   const groups = new Map();
-  state.songs.forEach(s => { const a = (s.artist || '').trim() || '가수 미입력'; if (!groups.has(a)) groups.set(a, []); groups.get(a).push(s); });
+  const q = fold($('songSearch').value);
+  const list = q ? state.songs.filter(s => fold((s.title || '') + ' ' + (s.artist || '')).includes(q)) : state.songs;
+  if (!list.length) { const p = document.createElement('p'); p.className = 'hint'; p.style.padding = '12px'; p.textContent = '찾는 노래가 없어요.'; box.appendChild(p); return; }
+  list.forEach(s => { const a = (s.artist || '').trim() || '가수 미입력'; if (!groups.has(a)) groups.set(a, []); groups.get(a).push(s); });
   [...groups.keys()].sort(col.compare).forEach(a => {
     const hd = document.createElement('div'); hd.className = 'artist-hd'; hd.lang = 'ja'; hd.textContent = a; box.appendChild(hd);
     groups.get(a).sort((x, y) => col.compare(x.title || '', y.title || '')).forEach(s => {
@@ -339,7 +346,7 @@ function renderList() {
     });
   });
 }
-$('libBtn').onclick = () => { renderList(); $('bakMsg').textContent = ''; $('libDlg').showModal(); };
+$('libBtn').onclick = () => { $('songSearch').value = ''; renderList(); $('bakMsg').textContent = ''; $('libDlg').showModal(); };
 
 /* backup */
 function bakMsg(t, err) { $('bakMsg').textContent = t; $('bakMsg').classList.toggle('err', !!err); }
