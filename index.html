@@ -63,21 +63,11 @@ button:focus-visible,textarea:focus-visible,input:focus-visible,select:focus-vis
 
 /* header */
 header{display:flex;align-items:center;gap:14px;padding:14px clamp(16px,4vw,32px);max-width:860px;width:100%;margin:0 auto;border-bottom:1px solid var(--line);flex-wrap:wrap;row-gap:12px}
-.cover{width:52px;height:52px;border-radius:4px;flex:none;display:grid;place-items:center;
-  font-family:var(--ja);font-weight:800;font-size:24px;color:#F3E6C8;
-  background:linear-gradient(135deg,hsl(var(--h) 34% 36%),hsl(calc(var(--h) + 25) 30% 22%));
-  box-shadow:inset 0 0 0 1px rgba(255,236,200,.2),inset 4px 0 0 rgba(0,0,0,.18),0 3px 8px rgba(50,30,10,.3)}
 .info{display:flex;align-items:center;gap:14px;min-width:0;flex:1;text-align:left;padding:4px;margin:-4px;border-radius:14px}
 .info:hover{background:var(--surface2)}
-.cover.has-pic{background-size:cover;background-position:center}
-.cover.big{width:104px;height:104px;font-size:44px;border-radius:14px}
-.pic-row{display:flex;align-items:center;gap:16px}
-.pic-btns{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
-.pastezone{border:1.5px dashed var(--line);border-radius:12px;padding:18px 12px;text-align:center;color:var(--ink2);font-size:14px;-webkit-user-select:text;user-select:text;caret-color:transparent;outline:none}
-.pastezone:focus{border-color:var(--accent);color:var(--ink)}
-.meta{min-width:0;flex:1}
-.meta .t{display:block;font-family:var(--ja);font-size:18px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.meta .a{display:block;margin-top:2px;font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta{min-width:0;flex:1;display:flex;align-items:baseline;gap:10px}
+.meta .t{min-width:0;font-family:var(--ja);font-size:clamp(24px,6vw,30px);font-weight:800;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta .a{flex:none;max-width:45%;font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .icon{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none}
 .icon:hover{background:var(--surface2)}
 .icon svg{width:22px;height:22px}
@@ -115,10 +105,11 @@ dialog::backdrop{background:rgba(30,18,8,.45)}
 .dlg .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .song{display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;width:100%;text-align:left}
 .song:hover,.song.cur{background:var(--surface2)}
-.song .cover{width:44px;height:44px;font-size:20px}
 .song b{display:block;font-family:var(--ja);font-weight:700}
 .song small{color:var(--ink2)}
 .song-wrap{display:flex;align-items:center}
+.artist-hd{margin:14px 0 4px;padding:6px 12px;border-radius:8px;background:var(--surface2);border-left:3px solid var(--accent);font-size:13px;font-weight:700;color:var(--ink2);font-family:var(--ja)}
+#songList .artist-hd:first-child{margin-top:4px}
 .del{color:var(--ink2);font-size:13px;padding:8px}
 .del:hover{color:#d33}
 label{font-size:13px;font-weight:600;color:var(--ink2);display:flex;flex-direction:column;gap:6px}
@@ -140,8 +131,7 @@ textarea{font-family:var(--ja);min-height:220px;resize:vertical;line-height:1.6;
 <div class="aura" aria-hidden="true"></div>
 
 <header>
-  <button class="info" id="infoBtn" title="제목·가수·사진 수정" aria-label="노래 제목과 사진 수정">
-    <span class="cover" id="cover" aria-hidden="true">歌</span>
+  <button class="info" id="infoBtn" title="제목·가수 수정" aria-label="노래 제목과 가수 수정">
     <span class="meta"><span class="t" id="title" lang="ja"></span><span class="a" id="artist"></span></span>
   </button>
   <button class="icon" id="libBtn" title="내 노래 목록" aria-label="내 노래 목록">
@@ -164,13 +154,13 @@ textarea{font-family:var(--ja);min-height:220px;resize:vertical;line-height:1.6;
 <dialog id="libDlg">
   <div class="dlg">
     <div class="row"><h2>내 노래</h2><button class="primary" id="newBtn">새 노래 추가</button></div>
-    <div id="songList"></div>
     <div class="row" style="justify-content:flex-start;flex-wrap:wrap">
-      <button class="chip" id="expBtn">백업 내보내기</button>
-      <button class="chip" id="impBtn">백업 불러오기</button>
-      <input type="file" id="fImp" accept=".json,application/json" hidden>
+      <button class="chip" id="expBtn">전체 파일로 저장</button>
+      <button class="chip" id="impBtn">파일 불러오기</button>
+      <input type="file" id="fImp" accept=".json,application/json" multiple hidden>
     </div>
     <p class="status" id="bakMsg" role="status"></p>
+    <div id="songList"></div>
     <div class="row"><span></span><button class="ghost" data-close>닫기</button></div>
   </div>
 </dialog>
@@ -195,21 +185,10 @@ textarea{font-family:var(--ja);min-height:220px;resize:vertical;line-height:1.6;
 <dialog id="infoDlg">
   <div class="dlg">
     <h2>노래 정보 수정</h2>
-    <div class="pic-row">
-      <span class="cover big" id="infoCover" aria-hidden="true"></span>
-      <div class="pic-btns">
-        <button class="chip" id="pasteBtn">사진 붙여넣기</button>
-        <button class="chip" id="picBtn">파일에서 선택</button>
-        <button class="chip" id="rmPic">사진 지우기</button>
-        <input type="file" id="fPic" accept="image/*" hidden>
-      </div>
-    </div>
     <div class="two">
       <label>노래 제목<input id="eTitle" lang="ja"></label>
       <label>가수<input id="eArtist"></label>
     </div>
-    <div class="pastezone" id="pasteZone" contenteditable="true" inputmode="none" role="textbox" aria-label="사진 붙여넣기 칸">여기를 길게 눌러 <b>붙여넣기</b></div>
-    <p class="hint">사진을 복사한 뒤 위 칸을 길게 눌러 붙여넣기 하세요. 컴퓨터에서는 Ctrl/⌘+V도 됩니다.</p>
     <p class="status err" id="infoMsg" role="status"></p>
     <div class="row">
       <button class="ghost" data-close>취소</button>
@@ -227,6 +206,8 @@ let state;
 try { state = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { state = null; }
 if (!state || !Array.isArray(state.songs)) state = { songs:[], cur:null, prefs:{pr:true, ko:true} };
 if (!state.prefs) state.prefs = {pr:true, ko:true};
+if (!Array.isArray(state.removed)) state.removed = [];
+state.songs.forEach(s => { delete s.pic; });
 state.songs = state.songs.filter(s => s.id !== 'demo');
 if (!state.songs.some(s => s.id === state.cur)) state.cur = state.songs[0] ? state.songs[0].id : null;
 let remote = null, synced = {}, syncedPrefs = '';
@@ -278,7 +259,6 @@ function render() {
     document.documentElement.style.setProperty('--h', 30);
     $('title').textContent = '아직 노래가 없어요';
     $('artist').textContent = '';
-    paintCover($('cover'), {hue:30, title:'歌'}, '');
     $('lyrics').innerHTML = '<div class="empty"><p>공부할 노래를 추가해 보세요.</p><button class="primary" id="emptyAdd">새 노래 추가</button></div>';
     $('emptyAdd').onclick = openAdd;
     return;
@@ -286,7 +266,6 @@ function render() {
   document.documentElement.style.setProperty('--h', s.hue);
   $('title').textContent = s.title || '제목 없음';
   $('artist').textContent = s.artist || '';
-  paintCover($('cover'), s);
   const box = $('lyrics'); box.textContent = '';
   if (!s.lines.length) { box.innerHTML = '<p class="empty">가사가 없습니다. 목록에서 새 노래를 추가해 보세요.</p>'; return; }
   s.lines.forEach((l, i) => {
@@ -316,7 +295,9 @@ function applyPrefs() {
 $('lyrics').addEventListener('focusout', e => {
   const p = e.target; if (!editing || !p.dataset?.k) return;
   const i = +p.closest('.ln').dataset.i;
-  song().lines[i][p.dataset.k] = p.textContent.trim(); save();
+  const s = song(), v = p.textContent.trim();
+  if (s.lines[i][p.dataset.k] !== v) { s.lines[i][p.dataset.k] = v; s.edited = true; }
+  save();
 });
 for (const [btn, k] of [['prBtn','pr'],['koBtn','ko']]) {
   $(btn).onclick = () => { state.prefs[k] = !state.prefs[k]; applyPrefs(); save(); };
@@ -331,36 +312,48 @@ $('editBtn').onclick = () => {
 /* library */
 function renderList() {
   const box = $('songList'); box.textContent = '';
-  state.songs.forEach(s => {
+  const col = new Intl.Collator('ja', {numeric: true, sensitivity: 'base'});
+  const groups = new Map();
+  state.songs.forEach(s => { const a = (s.artist || '').trim() || '가수 미입력'; if (!groups.has(a)) groups.set(a, []); groups.get(a).push(s); });
+  [...groups.keys()].sort(col.compare).forEach(a => {
+    const hd = document.createElement('div'); hd.className = 'artist-hd'; hd.lang = 'ja'; hd.textContent = a; box.appendChild(hd);
+    groups.get(a).sort((x, y) => col.compare(x.title || '', y.title || '')).forEach(s => {
     const w = document.createElement('div'); w.className = 'song-wrap';
     const b = document.createElement('button'); b.className = 'song' + (s.id === state.cur ? ' cur' : '');
-    b.innerHTML = `<span class="cover" style="--h:${s.hue}"></span><span><b lang="ja"></b><small></small></span>`;
-    paintCover(b.querySelector('.cover'), s);
+    b.innerHTML = `<span><b lang="ja"></b></span>`;
     b.querySelector('b').textContent = s.title || '제목 없음';
-    b.querySelector('small').textContent = s.artist || '가수 미입력';
     b.onclick = () => { state.cur = s.id; save(); render(); $('main').scrollTop = 0; $('libDlg').close(); };
+    const fileBtn = document.createElement('button'); fileBtn.className = 'del'; fileBtn.textContent = '파일';
+    fileBtn.title = '이 노래를 파일로 저장'; fileBtn.setAttribute('aria-label', `${s.title} 파일로 저장`);
+    fileBtn.onclick = () => saveFile(songFileName(s), JSON.stringify({app:'utanote', v:1, song: s}), '노래 파일을 저장했어요. 다른 기기에서 “파일 불러오기”로 열면 됩니다.');
     const del = document.createElement('button'); del.className = 'del'; del.textContent = '삭제';
     del.setAttribute('aria-label', `${s.title} 삭제`);
     del.onclick = () => {
       if (!confirm(`“${s.title}”을(를) 목록에서 삭제할까요?`)) return;
       state.songs = state.songs.filter(x => x.id !== s.id);
+      if (bundledIds.has(s.id) && !state.removed.includes(s.id)) state.removed.push(s.id);
       if (state.cur === s.id) { state.cur = state.songs[0] ? state.songs[0].id : null; render(); }
       save(); renderList();
     };
-    w.append(b, del); box.appendChild(w);
+    w.append(b, fileBtn, del); box.appendChild(w);
+    });
   });
 }
 $('libBtn').onclick = () => { renderList(); $('bakMsg').textContent = ''; $('libDlg').showModal(); };
 
 /* backup */
 function bakMsg(t, err) { $('bakMsg').textContent = t; $('bakMsg').classList.toggle('err', !!err); }
-$('expBtn').onclick = async () => {
-  const data = JSON.stringify({app:'utanote', v:1, songs: state.songs, prefs: state.prefs});
-  const d = new Date(), name = `utanote-backup-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+const byNewest = (a, b) => (parseInt(b.id.slice(1)) || 0) - (parseInt(a.id.slice(1)) || 0);
+const isSong = s => s && typeof s.id === 'string' && Array.isArray(s.lines);
+function songFileName(s) {
+  const t = (s.title || 'song').replace(/[\\/:*?"<>|\s]+/g, '_').slice(0, 40);
+  return `utanote-${t}.json`;
+}
+async function saveFile(name, data, okMsg) {
   let dl = null;
   if (window.claude && window.claude.use) dl = await claude.use('downloads').catch(() => null);
   if (dl) {
-    try { await dl.save({filename: name, data}); bakMsg('백업 파일을 저장했어요.'); }
+    try { await dl.save({filename: name, data}); bakMsg(okMsg); }
     catch (e) { bakMsg('저장이 취소됐어요.', true); }
     return;
   }
@@ -368,24 +361,66 @@ $('expBtn').onclick = async () => {
   a.href = URL.createObjectURL(new Blob([data], {type:'application/json'}));
   a.download = name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-  bakMsg('백업 파일을 저장했어요.');
+  bakMsg(okMsg);
+}
+/* accepts a full backup {songs:[…]} or a single song file {song:{…}} */
+function songsFromFile(j) {
+  if (!j || typeof j !== 'object') return null;
+  if (Array.isArray(j.songs)) return j.songs.filter(isSong);
+  if (isSong(j.song)) return [j.song];
+  if (isSong(j)) return [j];
+  return null;
+}
+function mergeSongs(incoming, overwrite) {
+  const map = new Map(state.songs.map(s => [s.id, s]));
+  let added = 0;
+  incoming.forEach(s => { if (overwrite || !map.has(s.id)) { if (!map.has(s.id)) added++; map.set(s.id, s); } });
+  state.songs = [...map.values()].sort(byNewest);
+  if (!state.cur && state.songs[0]) state.cur = state.songs[0].id;
+  return added;
+}
+$('expBtn').onclick = () => {
+  const data = JSON.stringify({app:'utanote', v:1, songs: state.songs, prefs: state.prefs});
+  const d = new Date(), name = `utanote-backup-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+  saveFile(name, data, '전체 노래 파일을 저장했어요.');
 };
 $('impBtn').onclick = () => $('fImp').click();
 $('fImp').onchange = async e => {
-  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-  try {
-    const j = JSON.parse(await f.text());
-    if (!j || !Array.isArray(j.songs)) throw 0;
-    const incoming = j.songs.filter(s => s && s.id && Array.isArray(s.lines));
-    const map = new Map(state.songs.map(s => [s.id, s]));
-    incoming.forEach(s => map.set(s.id, s));
-    state.songs = [...map.values()].sort((a, b) => (parseInt(b.id.slice(1)) || 0) - (parseInt(a.id.slice(1)) || 0));
-    if (j.prefs && typeof j.prefs === 'object') state.prefs = {...state.prefs, ...j.prefs};
-    if (!state.cur && state.songs[0]) state.cur = state.songs[0].id;
-    save(); applyTheme(); applyPrefs(); render(); renderList();
-    bakMsg(`${incoming.length}곡을 불러왔어요.`);
-  } catch (err) { bakMsg('우타노트 백업 파일이 아니에요.', true); }
+  const files = [...e.target.files]; e.target.value = ''; if (!files.length) return;
+  let n = 0, bad = 0, prefs = null;
+  for (const f of files) {
+    try {
+      const j = JSON.parse(await f.text());
+      const songs = songsFromFile(j); if (!songs) throw 0;
+      state.removed = state.removed.filter(id => !songs.some(s => s.id === id));
+      mergeSongs(songs, true); n += songs.length;
+      if (j.prefs && typeof j.prefs === 'object') prefs = j.prefs;
+    } catch (err) { bad++; }
+  }
+  if (prefs) state.prefs = {...state.prefs, ...prefs};
+  save(); applyTheme(); applyPrefs(); render(); renderList();
+  if (!n) bakMsg('우타노트 노래 파일이 아니에요.', true);
+  else bakMsg(`${n}곡을 불러왔어요.` + (bad ? ` (${bad}개 파일은 읽지 못했어요)` : ''), false);
 };
+
+/* bundled song files: songs/index.json lists files next to the app, so every device that opens it gets them */
+const bundledIds = new Set();
+async function loadBundled() {
+  try {
+    const r = await fetch('songs/index.json', {cache: 'no-cache'}); if (!r.ok) return;
+    const idx = await r.json();
+    const names = (idx && Array.isArray(idx.songs) ? idx.songs : []).filter(x => typeof x === 'string' && /^[\w.-]+\.json$/.test(x));
+    const got = (await Promise.all(names.map(n => fetch('songs/' + n, {cache: 'no-cache'}).then(r => r.ok ? r.json() : null).catch(() => null))))
+      .flatMap(j => songsFromFile(j) || []);
+    got.forEach(s => bundledIds.add(s.id));
+    const fresh = got.filter(s => !state.removed.includes(s.id));
+    /* corrected bundled lyrics replace the stored copy, unless the user edited that song on this device */
+    const mine = new Map(state.songs.map(s => [s.id, s]));
+    const changed = fresh.filter(s => { const o = mine.get(s.id); return o && !o.edited && JSON.stringify([o.title, o.artist, o.lines]) !== JSON.stringify([s.title, s.artist, s.lines]); });
+    if (changed.length) mergeSongs(changed, true);
+    if (mergeSongs(fresh, false) || changed.length) { save(); if (!editing) render(); if ($('libDlg').open) renderList(); }
+  } catch (e) {}
+}
 function openAdd() {
   if ($('libDlg').open) $('libDlg').close();
   $('status').textContent = ''; $('addDlg').showModal(); $('fTitle').focus();
@@ -394,84 +429,17 @@ $('newBtn').onclick = openAdd;
 document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => b.closest('dialog').close());
 
 /* song info */
-function paintCover(el, s, pic) {
-  const img = pic === undefined ? s.pic : pic;
-  el.style.setProperty('--h', s.hue);
-  el.classList.toggle('has-pic', !!img);
-  el.style.backgroundImage = img ? `url("${img}")` : '';
-  el.textContent = img ? '' : (s.title || '歌').trim().charAt(0);
-}
-let pendingPic = '';
-function readPic(file) {
-  return new Promise((res, rej) => {
-    const fr = new FileReader();
-    fr.onerror = rej;
-    fr.onload = () => {
-      const img = new Image();
-      img.onerror = rej;
-      img.onload = () => {
-        const n = 320, c = document.createElement('canvas'); c.width = c.height = n;
-        const k = Math.max(n / img.naturalWidth, n / img.naturalHeight);
-        const w = img.naturalWidth * k, h = img.naturalHeight * k;
-        c.getContext('2d').drawImage(img, (n - w) / 2, (n - h) / 2, w, h);
-        res(c.toDataURL('image/jpeg', .85));
-      };
-      img.src = fr.result;
-    };
-    fr.readAsDataURL(file);
-  });
-}
 $('infoBtn').onclick = () => {
   const s = song(); if (!s) return openAdd();
-  pendingPic = s.pic || '';
   $('eTitle').value = s.title || ''; $('eArtist').value = s.artist || '';
-  paintCover($('infoCover'), s, pendingPic); $('infoMsg').textContent = '';
+  $('infoMsg').textContent = '';
   $('infoDlg').showModal();
 };
-$('picBtn').onclick = () => $('fPic').click();
-async function usePic(blob) {
-  try { pendingPic = await readPic(blob); paintCover($('infoCover'), song(), pendingPic); $('infoMsg').textContent = ''; }
-  catch (err) { $('infoMsg').textContent = '이 사진은 읽을 수 없어요. 다른 사진을 복사해 보세요.'; }
-}
-const PZ = '여기를 길게 눌러 <b>붙여넣기</b>';
-$('pasteZone').addEventListener('beforeinput', e => { if (e.inputType !== 'insertFromPaste') e.preventDefault(); });
-$('pasteZone').addEventListener('input', () => { $('pasteZone').innerHTML = PZ; });
-$('pasteZone').addEventListener('drop', e => {
-  e.preventDefault();
-  const f = [...(e.dataTransfer?.files || [])].find(x => x.type.startsWith('image/'));
-  if (f) usePic(f);
-});
-document.addEventListener('paste', e => {
-  if (!$('infoDlg').open) return;
-  const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
-  if (!item) { if (!e.target.closest('input')) $('infoMsg').textContent = '클립보드에 사진이 없어요. 사진을 먼저 복사해 주세요.'; return; }
-  e.preventDefault(); usePic(item.getAsFile()); $('pasteZone').innerHTML = PZ; $('pasteZone').blur();
-});
-$('pasteBtn').onclick = async () => {
-  try {
-    if (!navigator.clipboard || !navigator.clipboard.read) throw {code:'unsupported'};
-    const items = await navigator.clipboard.read();
-    for (const it of items) {
-      const t = it.types.find(x => x.startsWith('image/'));
-      if (t) return usePic(await it.getType(t));
-    }
-    $('infoMsg').textContent = '클립보드에 사진이 없어요. 사진을 먼저 복사해 주세요.';
-  } catch (err) {
-    $('infoMsg').textContent = err && err.code === 'unsupported'
-      ? '이 브라우저에서는 버튼으로 붙여넣기가 안 돼요. Ctrl/⌘+V 하거나 파일에서 선택해 주세요.'
-      : '붙여넣기가 허용되지 않았어요. Ctrl/⌘+V 하거나 파일에서 선택해 주세요.';
-  }
-};
-$('fPic').onchange = async e => {
-  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-  try { pendingPic = await readPic(f); paintCover($('infoCover'), song(), pendingPic); $('infoMsg').textContent = ''; }
-  catch (err) { $('infoMsg').textContent = '이 파일은 사진으로 읽을 수 없습니다. JPG나 PNG 파일을 골라 주세요.'; }
-};
-$('rmPic').onclick = () => { pendingPic = ''; paintCover($('infoCover'), {...song(), title: $('eTitle').value}, ''); };
 $('saveInfo').onclick = () => {
   const s = song(); if (!s) return;
+  const t0 = s.title, a0 = s.artist;
   s.title = $('eTitle').value.trim() || s.title; s.artist = $('eArtist').value.trim();
-  if (pendingPic) s.pic = pendingPic; else delete s.pic;
+  if (s.title !== t0 || s.artist !== a0) s.edited = true;
   save(); render(); $('infoDlg').close();
 };
 
@@ -601,6 +569,7 @@ function fitAll() {
 }
 
 applyTheme(); applyPrefs(); render();
+loadBundled();
 
 /* cross-browser sync: each person's songs live in their own private space */
 (async () => {
