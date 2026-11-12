@@ -153,12 +153,8 @@ textarea{font-family:var(--ja);min-height:220px;resize:vertical;line-height:1.6;
 
 <dialog id="libDlg">
   <div class="dlg">
-    <div class="row"><h2>내 노래</h2><button class="primary" id="newBtn">새 노래 추가</button></div>
-    <div class="row" style="justify-content:flex-start;flex-wrap:wrap">
-      <button class="chip" id="expBtn">전체 파일로 저장</button>
-      <button class="chip" id="impBtn">파일 불러오기</button>
-      <input type="file" id="fImp" accept=".json,application/json" multiple hidden>
-    </div>
+    <div class="row"><h2>내 노래</h2><button class="primary" id="impBtn">불러오기</button></div>
+    <input type="file" id="fImp" accept=".json,application/json" multiple hidden>
     <p class="status" id="bakMsg" role="status"></p>
     <input type="search" id="songSearch" placeholder="제목·가수 검색" aria-label="노래 검색" autocomplete="off" style="width:100%;margin:2px 0 4px">
     <div id="songList"></div>
@@ -260,8 +256,8 @@ function render() {
     document.documentElement.style.setProperty('--h', 30);
     $('title').textContent = '아직 노래가 없어요';
     $('artist').textContent = '';
-    $('lyrics').innerHTML = '<div class="empty"><p>공부할 노래를 추가해 보세요.</p><button class="primary" id="emptyAdd">새 노래 추가</button></div>';
-    $('emptyAdd').onclick = openAdd;
+    $('lyrics').innerHTML = '<div class="empty"><p>가사 파일을 불러와 주세요.</p><button class="primary" id="emptyAdd">불러오기</button></div>';
+    $('emptyAdd').onclick = () => $('fImp').click();
     return;
   }
   document.documentElement.style.setProperty('--h', s.hue);
@@ -330,19 +326,7 @@ function renderList() {
     b.innerHTML = `<span><b lang="ja"></b></span>`;
     b.querySelector('b').textContent = s.title || '제목 없음';
     b.onclick = () => { state.cur = s.id; save(); render(); $('main').scrollTop = 0; $('libDlg').close(); };
-    const fileBtn = document.createElement('button'); fileBtn.className = 'del'; fileBtn.textContent = '파일';
-    fileBtn.title = '이 노래를 파일로 저장'; fileBtn.setAttribute('aria-label', `${s.title} 파일로 저장`);
-    fileBtn.onclick = () => saveFile(songFileName(s), JSON.stringify({app:'utanote', v:1, song: s}), '노래 파일을 저장했어요. 다른 기기에서 “파일 불러오기”로 열면 됩니다.');
-    const del = document.createElement('button'); del.className = 'del'; del.textContent = '삭제';
-    del.setAttribute('aria-label', `${s.title} 삭제`);
-    del.onclick = () => {
-      if (!confirm(`“${s.title}”을(를) 목록에서 삭제할까요?`)) return;
-      state.songs = state.songs.filter(x => x.id !== s.id);
-      if (bundledIds.has(s.id) && !state.removed.includes(s.id)) state.removed.push(s.id);
-      if (state.cur === s.id) { state.cur = state.songs[0] ? state.songs[0].id : null; render(); }
-      save(); renderList();
-    };
-    w.append(b, fileBtn, del); box.appendChild(w);
+    w.append(b); box.appendChild(w);
     });
   });
 }
@@ -386,11 +370,6 @@ function mergeSongs(incoming, overwrite) {
   if (!state.cur && state.songs[0]) state.cur = state.songs[0].id;
   return added;
 }
-$('expBtn').onclick = () => {
-  const data = JSON.stringify({app:'utanote', v:1, songs: state.songs, prefs: state.prefs});
-  const d = new Date(), name = `utanote-backup-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
-  saveFile(name, data, '전체 노래 파일을 저장했어요.');
-};
 $('impBtn').onclick = () => $('fImp').click();
 $('fImp').onchange = async e => {
   const files = [...e.target.files]; e.target.value = ''; if (!files.length) return;
@@ -432,7 +411,6 @@ function openAdd() {
   if ($('libDlg').open) $('libDlg').close();
   $('status').textContent = ''; $('addDlg').showModal(); $('fTitle').focus();
 }
-$('newBtn').onclick = openAdd;
 document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => b.closest('dialog').close());
 
 /* song info */
